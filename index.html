@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>対戦表作成ツール</title>
+    <style>
+        body { font-family: sans-serif; padding: 12px; margin: 0; background-color: #fff; color: #333; }
+        .no-print { margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; box-sizing: border-box; font-size: 16px; }
+        .form-group input::placeholder, .form-group textarea::placeholder { font-size: 14px; color: #888; }
+
+        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
+        button:first-child { background-color: #007bff; color: white; }
+        button:disabled { background-color: #ccc; }
+
+        .page { margin-bottom: 40px; }
+        h1 { font-size: 1.4em; margin: 0 0 5px 0; min-height: 1.4em; }
+        h2 { font-size: 1.1em; margin: 10px 0; border-left: 4px solid #007bff; padding-left: 6px; }
+        .date-display { text-align: right; font-size: 0.85em; color: #555; }
+
+        table { border-collapse: collapse; table-layout: fixed; width: 100%; margin-top: 5px; }
+        th, td { border: 1px solid #aaa; height: 35px; text-align: center; font-size: 11px; padding: 4px; position: relative; }
+        th { background: #eee; }
+
+        .match-num { position: absolute; top: 2px; left: 3px; font-size: 9px; color: #666; }
+        .diagonal { background: linear-gradient(to top right, #ddd 49.5%, #aaa 49.5%, #aaa 50.5%, #ddd 50.5%); }
+
+        .match-list-container { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; max-width: 900px; }
+        .match-list-container > div { flex: 1; min-width: 200px; max-width: 300px; }
+        .match-list-container table th:nth-child(1),
+        .match-list-container table td:nth-child(1) { width: 40px; }
+
+        @media print {
+            .no-print { display: none; }
+            .page { page-break-after: always; }
+            .page:last-child { page-break-after: avoid; }
+            .match-list-container table th,
+            .match-list-container table td { height: 25px; font-size: 10px; padding: 2px; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <h2>試合作成ツール</h2>
+    <div class="form-group">
+        <label>試合名</label>
+        <input type="text" id="eventName" placeholder="例: 5月度月例試合">
+    </div>
+    <div class="form-group">
+        <label>参加者名（3〜10人、改行区切り）</label>
+        <textarea id="names" style="height: 200px;" placeholder="プレイヤーA&#13;プレイヤーB..."></textarea>
+    </div>
+    <button onclick="generate()">表を作成して表示</button>
+    <button id="printBtn" onclick="window.print()" disabled style="background-color: #28a745; color: white;">印刷する</button>
+</div>
+
+<div id="output"></div>
+
+<script>
+const LEAGUE_TABLES = {
+    3: [[0, 1, 3], [1, 0, 2], [3, 2, 0]],
+    4: [[0, 1, 5, 3], [1, 0, 4, 6], [5, 4, 0, 2], [3, 6, 2, 0]],
+    5: [[0, 1, 6, 9, 3], [1, 0, 4, 7, 10], [6, 4, 0, 2, 8], [9, 7, 2, 0, 5], [3, 10, 8, 5, 0]],
+    6: [[0, 1, 12, 8, 10, 6], [1, 0, 4, 13, 7, 11], [12, 4, 0, 2, 14, 9], [8, 13, 2, 0, 5, 15], [10, 7, 14, 5, 0, 3], [6, 11, 9, 15, 3, 0]],
+    7: [[0, 1, 14, 8, 20, 12, 4], [1, 0, 5, 15, 9, 19, 13], [14, 5, 0, 2, 16, 10, 21], [8, 15, 2, 0, 6, 17, 11], [20, 9, 16, 6, 0, 3, 18], [12, 19, 10, 17, 3, 0, 7], [4, 13, 21, 11, 18, 7, 0]],
+    8: [[0, 1, 17, 12, 23, 10, 27, 8], [1, 0, 5, 18, 13, 24, 9, 28], [17, 5, 0, 2, 19, 14, 25, 11], [12, 18, 2, 0, 6, 20, 15, 26], [23, 13, 19, 6, 0, 3, 21, 16], [10, 24, 14, 20, 3, 0, 7, 22], [27, 9, 25, 15, 21, 7, 0, 4], [8, 28, 11, 26, 16, 22, 4, 0]],
+    9: [[0, 1, 24, 10, 19, 31, 16, 35, 5], [1, 0, 6, 25, 11, 20, 32, 17, 36], [24, 6, 0, 2, 26, 12, 21, 33, 18], [10, 25, 2, 0, 7, 27, 13, 22, 34], [19, 11, 26, 7, 0, 3, 28, 14, 23], [31, 20, 12, 27, 3, 0, 8, 29, 15], [16, 32, 21, 13, 28, 8, 0, 4, 30], [35, 17, 33, 22, 14, 29, 4, 0, 9], [5, 36, 18, 34, 23, 15, 30, 9, 0]],
+    10: [[0, 1, 21, 14, 29, 35, 40, 12, 44, 10], [1, 0, 6, 22, 15, 30, 36, 41, 11, 45], [21, 6, 0, 2, 23, 16, 31, 37, 42, 13], [14, 22, 2, 0, 7, 24, 17, 32, 38, 43], [29, 15, 23, 7, 0, 3, 25, 18, 33, 39], [35, 30, 16, 24, 3, 0, 8, 26, 19, 34], [40, 36, 31, 17, 25, 8, 0, 4, 27, 20], [12, 41, 37, 32, 18, 26, 4, 0, 9, 28], [44, 11, 42, 38, 33, 19, 27, 9, 0, 5], [10, 45, 13, 43, 39, 34, 20, 28, 5, 0]]
+};
+
+function generate() {
+    const names = document.getElementById('names').value.split('\n').map(n => n.trim()).filter(n => n !== "");
+    const eventName = document.getElementById('eventName').value.trim();
+    const now = new Date();
+    const eventDate = `${now.getFullYear()}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')}`;
+    const n = names.length;
+    if (n < 3 || n > 10) return alert("3〜10人で入力してください");
+
+    const matrix = LEAGUE_TABLES[n];
+    let matches = [];
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) matches.push({ p1: names[i], p2: names[j], originalNum: matrix[i][j] });
+    matches.sort((a, b) => a.originalNum - b.originalNum).forEach((m, i) => m.num = i + 1);
+
+    let html = `<div class="page">`;
+    if (eventName) html += `<h1>${eventName}</h1>`;
+    html += `<div class="date-display">${eventDate}</div><h2>1. 対戦表</h2>`;
+    const tableStyle = n <= 5 ? 'style="max-width: 450px;"' : '';
+    html += `<table ${tableStyle}><tr><th></th>${names.map(name => `<th>${name}</th>`).join('')}</tr>`;
+    for (let i = 0; i < n; i++) {
+        html += `<tr><th>${names[i]}</th>`;
+        for (let j = 0; j < n; j++) {
+            html += (i === j) ? `<td class="diagonal"></td>` : `<td><span class="match-num">${matrix[i][j]}</span></td>`;
+        }
+        html += `</tr>`;
+    }
+    html += `</table></div>`;
+
+    html += `<div class="page">`;
+    if (eventName) html += `<h1>${eventName}</h1>`;
+    html += `<div class="date-display">${eventDate}</div><h2>2. 対戦順</h2>`;
+    const cols = n >= 8 ? 3 : (n >= 6 ? 2 : 1);
+    const colSize = Math.ceil(matches.length / cols);
+    html += `<div class="match-list-container">`;
+    for (let c = 0; c < cols; c++) {
+        const part = matches.slice(c * colSize, (c + 1) * colSize);
+        if (part.length > 0) {
+            html += `<div><table><tr><th>試合</th><th>赤</th><th>白</th></tr>`
+                 + part.map(m => `<tr><td>${m.num}</td><td>${m.p1}</td><td>${m.p2}</td></tr>`).join('')
+                 + `</table></div>`;
+        }
+    }
+    html += `</div></div>`;
+
+    document.getElementById('output').innerHTML = html;
+    document.getElementById('printBtn').disabled = false;
+}
+</script>
+</body>
+</html>
