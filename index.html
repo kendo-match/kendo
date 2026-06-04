@@ -24,14 +24,14 @@
         .match-num-col { width: 40px; }
         .match-num { position: absolute; top: 2px; left: 3px; font-size: 8px; color: #888; line-height: 1; }
 
+        /* 表示・印刷共通のレイアウト */
+        .match-list-container { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; }
+        .match-list-column { flex: 1; min-width: 45%; }
+
         @media print {
             @page { size: A4 portrait; margin: 15mm; }
             .no-print { display: none; }
             .page { margin-bottom: 0; page-break-after: always; }
-            .match-list-container { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; }
-            .match-list-column { flex: 1; min-width: 45%; } /* 2段組に固定 */
-            th, td { height: 28px; font-size: 10px; }
-            .match-num-col { width: 30px; }
         }
     </style>
 </head>
@@ -84,7 +84,8 @@
         matches.sort((a, b) => a.originalNum - b.originalNum);
         matches.forEach((m, idx) => m.num = idx + 1);
 
-        const numCols = 2; // 常に2段組
+        // 3-5人は1列、6人以上は2列
+        const numCols = (n >= 6) ? 2 : 1;
         const matchesPerCol = Math.ceil(matches.length / numCols);
 
         const headerHtml = `<h1>${eventName}</h1><div class="date-display">${eventDate}</div>`;
@@ -107,6 +108,7 @@
 
         html += `</table></div><div class='page'>${headerHtml}<h2>2. 対戦順</h2><div class="match-list-container">`;
         for (let c = 0; c < numCols; c++) {
+            // 列ごとにテーブルを生成。ヘッダーは各列の先頭でのみ表示
             html += `<div class="match-list-column"><table><tr><th class="match-num-col">試合</th><th>赤</th><th>白</th></tr>`;
             const colMatches = matches.slice(c * matchesPerCol, (c + 1) * matchesPerCol);
             colMatches.forEach(m => html += `<tr><td>${m.num}</td><td>${m.p1}</td><td>${m.p2}</td></tr>`);
