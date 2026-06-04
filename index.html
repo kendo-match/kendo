@@ -27,9 +27,9 @@
         @media print {
             @page { size: A4 portrait; margin: 15mm; }
             .no-print { display: none; }
-            .page { margin-bottom: 0; }
+            .page { margin-bottom: 0; page-break-after: always; }
             .match-list-container { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; }
-            .match-list-column { flex: 1; min-width: 200px; }
+            .match-list-column { flex: 1; min-width: 45%; } /* 2段組に固定 */
             th, td { height: 28px; font-size: 10px; }
             .match-num-col { width: 30px; }
         }
@@ -84,8 +84,7 @@
         matches.sort((a, b) => a.originalNum - b.originalNum);
         matches.forEach((m, idx) => m.num = idx + 1);
 
-        // 人数ごとの段組み設定
-        const numCols = (n === 10) ? 3 : (n >= 6) ? 2 : 1;
+        const numCols = 2; // 常に2段組
         const matchesPerCol = Math.ceil(matches.length / numCols);
 
         const headerHtml = `<h1>${eventName}</h1><div class="date-display">${eventDate}</div>`;
