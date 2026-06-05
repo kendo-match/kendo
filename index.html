@@ -107,7 +107,7 @@
         const matchesPerCol = Math.ceil(matches.length / printCols);
         
         for (let c = 0; c < printCols; c++) {
-            html += `<div class="match-list-column ${printColClass}"><table><tr><th class="match-num-col">試合</th><th>赤</th><th>白</th></tr>`;
+            html += `<div class="match-list-column ${printColClass}"><table><tr><th class="match-num-col"></th><th>赤</th><th>白</th></tr>`;
             const colMatches = matches.slice(c * matchesPerCol, (c + 1) * matchesPerCol);
             colMatches.forEach(m => html += `<tr><td>${m.num}</td><td>${m.p1}</td><td>${m.p2}</td></tr>`);
             html += `</table></div>`;
