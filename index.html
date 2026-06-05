@@ -94,7 +94,7 @@
         else if (n >= 9) printCols = 3;
 
         const headerHtml = `<div class="header-container"><h1>${eventName}</h1><div class="date-display">${dateStr}</div></div>`;
-        let html = `<div class="page">` + headerHtml + `<h2 class="section-title">対戦表</h2><table><tr><th></th>`;
+        let html = `<div class="page">` + headerHtml + `<h2 class="section-title">対戦表</h2><table><tr><tr><tr><th></th>`;
         names.forEach(name => html += `<th>${name}</th>`);
         html += "</tr>";
         for (let i = 0; i < n; i++) {
