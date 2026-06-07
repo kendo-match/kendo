@@ -46,12 +46,16 @@
             .page { page-break-after: always; margin-bottom: 0; }
             .page:last-child { page-break-after: avoid; }
             
-            /* 対戦表のセルを大きくして書き込みやすくする設定 */
-            .page:first-of-type table { table-layout: auto; }
+            /* 対戦表のサイズ調整：少ない人数でも横に伸びないように */
+            .page:first-of-type table { 
+                width: auto;
+                margin: 0 auto;
+                max-width: 100%;
+            }
             .page:first-of-type table th, 
             .page:first-of-type table td {
                 height: 80px;
-                min-width: 80px;
+                width: 80px;
             }
             
             .diagonal-line { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
