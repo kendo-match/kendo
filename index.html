@@ -46,7 +46,14 @@
             .page { page-break-after: always; margin-bottom: 0; }
             .page:last-child { page-break-after: avoid; }
             
-            /* 対戦表のサイズ調整：少ない人数でも横に伸びないように */
+            /* 人数が多いとき(9, 10人)はセルを小さくして1ページに収める */
+            .page[data-n="9"] table th, .page[data-n="9"] table td,
+            .page[data-n="10"] table th, .page[data-n="10"] table td {
+                height: 55px !important;
+                width: 55px !important;
+                font-size: 9px !important;
+            }
+
             .page:first-of-type table { 
                 width: auto;
                 margin: 0 auto;
@@ -112,7 +119,9 @@
         else if (n >= 9) printCols = 3;
 
         const headerHtml = `<div class="header-container"><h1>${eventName}</h1><div class="date-display">${dateStr}</div></div>`;
-        let html = `<div class="page">` + headerHtml + `<h2 class="section-title">対戦表</h2><table><tr><th></th>`;
+        
+        // data-n 属性を付けてCSSで人数別に制御できるようにしました
+        let html = `<div class="page" data-n="${n}">` + headerHtml + `<h2 class="section-title">対戦表</h2><table><tr><th></th>`;
         names.forEach(name => html += `<th>${name}</th>`);
         html += "</tr>";
         
