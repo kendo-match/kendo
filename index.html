@@ -29,6 +29,7 @@
         th, td { border: 1px solid #aaa; height: 30px; text-align: center; font-size: 11px; padding: 1px; position: relative; }
         th { background: #eee; }
         
+        /* 対角線のスタイル */
         .diagonal-line {
             background: #eee;
             background-image: linear-gradient(to top right, transparent 49%, #aaa 50%, #aaa 51%, transparent 52%);
@@ -46,9 +47,9 @@
             .page { page-break-after: always; margin-bottom: 0; }
             .page:last-child { page-break-after: avoid; }
             
-            /* 対戦表(1つ目のテーブル)のセルを正方形に */
-            .page table:first-of-type th, 
-            .page table:first-of-type td {
+            /* 対戦表(1つ目のテーブル)のセルを正方形にする設定 */
+            .page:first-of-type table th, 
+            .page:first-of-type table td {
                 aspect-ratio: 1 / 1;
                 height: auto;
             }
