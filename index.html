@@ -79,9 +79,40 @@
            .page:first-of-type table th,
            .page:first-of-type table td { height: 60px; }
 
-           /* 対戦順表のレイアウト修正 */
-           .match-list-container { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; }
-           .match-list-column { flex: 1; min-width: 30%; }
+.match-list-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.match-list-column {
+    flex: 1;
+    min-width: 30%;
+}
+
+/* 対戦順表の行の高さ */
+.match-list-column table th,
+.match-list-column table td {
+    height: 45px !important;
+}
+
+/* 1列表示（3～5人）のとき */
+.match-list-column.single-column {
+    min-width: 50% !important;
+    max-width: 50% !important;
+}
+
+/* 2列表示（6～8人）のとき */
+.match-list-column.double-column {
+    min-width: 45% !important;
+}
+
+/* 3列表示（9～10人）のとき */
+.match-list-column.triple-column {
+    min-width: 30% !important;
+}
        }
    </style>
 </head>
@@ -147,8 +178,16 @@
 
        const matchesPerCol = Math.ceil(matches.length / printCols);
 
-       for (let c = 0; c < printCols; c++) {
-           html += `<div class="match-list-column"><table><tr><th class="match-num-col"></th><th>赤</th><th>白</th></tr>`;
+let colClass = "single-column";
+
+if (printCols === 2) {
+    colClass = "double-column";
+} else if (printCols === 3) {
+    colClass = "triple-column";
+}
+
+for (let c = 0; c < printCols; c++) {
+    html += `<div class="match-list-column ${colClass}"><table><tr><th class="match-num-col"></th><th>赤</th><th>白</th></tr>`;
            const colMatches = matches.slice(c * matchesPerCol, (c + 1) * matchesPerCol);
            colMatches.forEach(m => html += `<tr><td>${m.num}</td><td>${m.p1}</td><td>${m.p2}</td></tr>`);
            html += `</table></div>`;
